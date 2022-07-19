@@ -1,0 +1,10 @@
+[gd_scene load_steps=4 format=2]
+
+[ext_resource path="res://balloon_test_scene.gd" type="Script" id=1]
+[ext_resource path="res://dialogue.tres" type="Resource" id=2]
+[ext_resource path="res://portraits_balloon/portraits_balloon.tscn" type="PackedScene" id=3]
+
+[node name="PortraitsBalloonTest" type="Node2D"]
+script = ExtResource( 1 )
+Balloon = ExtResource( 3 )
+dialogue_resource = ExtResource( 2 )

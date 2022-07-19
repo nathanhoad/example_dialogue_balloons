@@ -1,0 +1,68 @@
+[gd_scene load_steps=4 format=2]
+
+[ext_resource path="res://addons/dialogue_manager/dialogue_label.gd" type="Script" id=2]
+[ext_resource path="res://point_n_click_balloon/point_n_click_balloon.gd" type="Script" id=3]
+[ext_resource path="res://point_n_click_balloon/font_normal.tres" type="DynamicFont" id=5]
+
+[node name="PointNClickBalloon" type="CanvasLayer"]
+layer = 128
+script = ExtResource( 3 )
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+
+[node name="DialogueLabel" type="RichTextLabel" parent="."]
+margin_left = 192.0
+margin_top = 62.0
+margin_right = 1226.0
+margin_bottom = 104.0
+custom_colors/default_color = Color( 1, 1, 1, 1 )
+custom_fonts/normal_font = ExtResource( 5 )
+bbcode_enabled = true
+bbcode_text = "This is some dialogue"
+meta_underlined = false
+text = "This is some dialogue"
+scroll_active = false
+script = ExtResource( 2 )
+seconds_per_step = 0.0
+
+[node name="Background" type="ColorRect" parent="."]
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_top = -300.0
+mouse_filter = 1
+color = Color( 0, 0, 0, 1 )
+
+[node name="Margin" type="MarginContainer" parent="Background"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 1
+custom_constants/margin_right = 20
+custom_constants/margin_top = 20
+custom_constants/margin_left = 20
+custom_constants/margin_bottom = 20
+
+[node name="Responses" type="VBoxContainer" parent="Background/Margin"]
+margin_left = 20.0
+margin_top = 20.0
+margin_right = 1900.0
+margin_bottom = 280.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+custom_constants/separation = 10
+
+[node name="ResponseTemplate" type="RichTextLabel" parent="Background/Margin"]
+margin_left = 20.0
+margin_top = 20.0
+margin_right = 1900.0
+margin_bottom = 280.0
+rect_min_size = Vector2( 0, 50 )
+mouse_default_cursor_shape = 2
+size_flags_horizontal = 3
+custom_colors/default_color = Color( 1, 1, 1, 1 )
+custom_fonts/normal_font = ExtResource( 5 )
+bbcode_enabled = true
+bbcode_text = "Response"
+meta_underlined = false
+text = "Response"
+scroll_active = false

@@ -1,0 +1,15 @@
+[remap]
+
+importer="ogg_vorbis"
+type="AudioStreamOGGVorbis"
+path="res://.import/t643e01443b.ogg-deaec000709e30309dbbacaf7ce216fc.oggstr"
+
+[deps]
+
+source_file="res://point_n_click_balloon/voice/de/t643e01443b.ogg"
+dest_files=[ "res://.import/t643e01443b.ogg-deaec000709e30309dbbacaf7ce216fc.oggstr" ]
+
+[params]
+
+loop=false
+loop_offset=0

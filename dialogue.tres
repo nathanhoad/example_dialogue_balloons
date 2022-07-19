@@ -1,0 +1,164 @@
+[gd_resource type="Resource" load_steps=2 format=2]
+
+[ext_resource path="res://addons/dialogue_manager/dialogue_resource.gd" type="Script" id=1]
+
+[resource]
+script = ExtResource( 1 )
+syntax_version = 2
+raw_text = "~ start
+
+Nathan: Hi, I'm Nathan and this is Coco. [TR:tf885328afb]
+Coco: Meow. [TR:t4c11347656]
+Nathan: Here are some response options. [TR:tba678dd331]
+- First one [TR:tec2831274f]
+	Nathan: You picked the first one. [TR:ted9b57f70f]
+- Second one [TR:te9670331c2]
+	Nathan: You picked the second one. [TR:t14bc171a9f]
+- Start again [TR:ta04a1307f6] => start
+- End the conversation [TR:t3211e3adf8] => END
+Nathan: I hope this example is helpful. [TR:t643e01443b]
+Coco: Meow. [TR:tb75d1c7a40]"
+errors = [  ]
+titles = {
+"start": "2"
+}
+lines = {
+"0": {
+"next_id": "2",
+"text": "start",
+"type": "title"
+},
+"10": {
+"next_id": "11",
+"next_id_after": "11",
+"replacements": [  ],
+"text": "End the conversation",
+"translation_key": "t3211e3adf8",
+"type": "response"
+},
+"11": {
+"character": "Nathan",
+"character_replacements": [  ],
+"inline_mutations": [  ],
+"next_id": "12",
+"pauses": {
+},
+"replacements": [  ],
+"speeds": [  ],
+"text": "I hope this example is helpful.",
+"time": null,
+"translation_key": "t643e01443b",
+"type": "dialogue"
+},
+"12": {
+"character": "Coco",
+"character_replacements": [  ],
+"inline_mutations": [  ],
+"next_id": "",
+"pauses": {
+},
+"replacements": [  ],
+"speeds": [  ],
+"text": "Meow.",
+"time": null,
+"translation_key": "tb75d1c7a40",
+"type": "dialogue"
+},
+"2": {
+"character": "Nathan",
+"character_replacements": [  ],
+"inline_mutations": [  ],
+"next_id": "3",
+"pauses": {
+},
+"replacements": [  ],
+"speeds": [  ],
+"text": "Hi, I'm Nathan and this is Coco.",
+"time": null,
+"translation_key": "tf885328afb",
+"type": "dialogue"
+},
+"3": {
+"character": "Coco",
+"character_replacements": [  ],
+"inline_mutations": [  ],
+"next_id": "4",
+"pauses": {
+},
+"replacements": [  ],
+"speeds": [  ],
+"text": "Meow.",
+"time": null,
+"translation_key": "t4c11347656",
+"type": "dialogue"
+},
+"4": {
+"character": "Nathan",
+"character_replacements": [  ],
+"inline_mutations": [  ],
+"next_id": "5",
+"pauses": {
+},
+"replacements": [  ],
+"speeds": [  ],
+"text": "Here are some response options.",
+"time": null,
+"translation_key": "tba678dd331",
+"type": "dialogue"
+},
+"5": {
+"next_id": "6",
+"next_id_after": "11",
+"replacements": [  ],
+"responses": PoolStringArray( "5", "7", "9", "10" ),
+"text": "First one",
+"translation_key": "tec2831274f",
+"type": "response"
+},
+"6": {
+"character": "Nathan",
+"character_replacements": [  ],
+"inline_mutations": [  ],
+"next_id": "11",
+"parent_id": "5",
+"pauses": {
+},
+"replacements": [  ],
+"speeds": [  ],
+"text": "You picked the first one.",
+"time": null,
+"translation_key": "ted9b57f70f",
+"type": "dialogue"
+},
+"7": {
+"next_id": "8",
+"next_id_after": "11",
+"replacements": [  ],
+"text": "Second one",
+"translation_key": "te9670331c2",
+"type": "response"
+},
+"8": {
+"character": "Nathan",
+"character_replacements": [  ],
+"inline_mutations": [  ],
+"next_id": "11",
+"parent_id": "7",
+"pauses": {
+},
+"replacements": [  ],
+"speeds": [  ],
+"text": "You picked the second one.",
+"time": null,
+"translation_key": "t14bc171a9f",
+"type": "dialogue"
+},
+"9": {
+"next_id": "2",
+"next_id_after": "11",
+"replacements": [  ],
+"text": "Start again",
+"translation_key": "ta04a1307f6",
+"type": "response"
+}
+}
