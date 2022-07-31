@@ -201,11 +201,14 @@ func parse(content: String) -> Dictionary:
 		
 		# Title
 		elif is_title_line(raw_line):
-			line["type"] = DialogueConstants.TYPE_TITLE
-			line["text"] = raw_line.replace("~ ", "")
-			var valid_title = VALID_TITLE_REGEX.search(raw_line.substr(2).strip_edges())
-			if not valid_title:
-				errors.append(error(id, "Titles can only contain alphanumerics and underscores"))
+			if not raw_lines[id].begins_with("~"):
+				errors.append(error(id, "Titles cannot be nested"))
+			else:
+				line["type"] = DialogueConstants.TYPE_TITLE
+				line["text"] = raw_line.replace("~ ", "")
+				var valid_title = VALID_TITLE_REGEX.search(raw_line.substr(2).strip_edges())
+				if not valid_title:
+					errors.append(error(id, "Titles can only contain alphanumerics and underscores"))
 		
 		# Condition
 		elif is_condition_line(raw_line, false):
@@ -392,8 +395,7 @@ func is_line_empty(line: String) -> bool:
 
 
 func get_line_after_line(id: int, indent_size: int, line: Dictionary, raw_lines: Array, dialogue: Dictionary) -> String:
-	# Unless the next line is an outdent then we can assume
-	# it comes next
+	# Unless the next line is an outdent we can assume it comes next
 	var next_nonempty_line_id = get_next_nonempty_line_id(id, raw_lines)
 	if next_nonempty_line_id != DialogueConstants.ID_NULL \
 		and indent_size <= get_indent(raw_lines[next_nonempty_line_id.to_int()]):
@@ -402,7 +404,7 @@ func get_line_after_line(id: int, indent_size: int, line: Dictionary, raw_lines:
 			if line.get("type") == DialogueConstants.TYPE_GOTO:
 				return DialogueConstants.ID_NULL
 			elif will_continue_through_titles():
-				return get_next_nonempty_line_id(next_nonempty_line_id.to_int() + 1, raw_lines)
+				return get_next_nonempty_line_id(next_nonempty_line_id.to_int(), raw_lines)
 			else:
 				return DialogueConstants.ID_NULL
 		# Otherwise it's a normal line
@@ -495,7 +497,7 @@ func find_next_line_after_conditions(line_number: int, all_lines: Array, dialogu
 		
 		if is_title_line(line):
 			if will_continue_through_titles():
-				return get_next_nonempty_line_id(i + 1, all_lines)
+				return get_next_nonempty_line_id(i, all_lines)
 			else:
 				return DialogueConstants.ID_END_CONVERSATION
 			
@@ -538,7 +540,7 @@ func find_next_line_after_responses(line_number: int, all_lines: Array, dialogue
 		# We hit a title so the next line is the end of the conversation
 		if is_title_line(line):
 			if will_continue_through_titles():
-				return get_next_nonempty_line_id(i + 1, all_lines)
+				return get_next_nonempty_line_id(i, all_lines)
 			else:
 				return DialogueConstants.ID_END_CONVERSATION
 		
@@ -668,7 +670,7 @@ func extract_goto(line: String, titles: Dictionary) -> String:
 	# "=> END" means end the current title (and go back to the previous one if there is one 
 	#		   in the stack)
 	elif title == "END": 
-		return DialogueConstants.ID_NULL
+		return DialogueConstants.ID_END
 		
 	elif titles.has(title):
 		return titles.get(title)

@@ -23,8 +23,6 @@ var settings: DialogueSettings = DialogueSettings.new()
 
 var is_dialogue_running := false setget set_is_dialogue_running
 
-var _goto_stack: Array = []
-
 var _node_properties: Array = []
 var _resource_cache: Array = []
 var _trash: Node = Node.new()
@@ -91,13 +89,19 @@ func get_next_dialogue_line(key: String, override_resource: DialogueResource = n
 	# Run the mutation if it is one
 	if dialogue.type == DialogueConstants.TYPE_MUTATION:
 		yield(mutate(dialogue.mutation), "completed")
-		dialogue.queue_free()
-		if dialogue.next_id in [DialogueConstants.ID_END_CONVERSATION, DialogueConstants.ID_NULL, null]:
+		if is_instance_valid(dialogue):
+			dialogue.queue_free()
+			var actual_next_id = Array(dialogue.next_id.split(",")).front()
+			if actual_next_id in [DialogueConstants.ID_END_CONVERSATION, DialogueConstants.ID_NULL, null]:
+				# End the conversation
+				self.is_dialogue_running = false
+				return null
+			else:
+				return get_next_dialogue_line(dialogue.next_id, local_resource)
+		else:
 			# End the conversation
 			self.is_dialogue_running = false
 			return null
-		else:
-			return get_next_dialogue_line(dialogue.next_id, local_resource)
 	else:
 		return dialogue
 
@@ -160,10 +164,15 @@ func compile_resource(resource: DialogueResource) -> DialogueResource:
 
 # Get a line by its ID
 func get_line(key: String, local_resource: DialogueResource) -> DialogueLine:
-	# End of conversation
-	if key in [DialogueConstants.ID_NULL, null]:
-		if _goto_stack.size() > 0:
-			return get_line(_goto_stack.pop_back(), local_resource)
+	# See if we were given a stack instead of just the one key
+	var stack: Array = key.split(",")
+	key = stack.pop_front()
+	var id_trail = "" if stack.size() == 0 else "," + PoolStringArray(stack).join(",")
+	
+	# See if we just ended the conversation
+	if key in [DialogueConstants.ID_END, DialogueConstants.ID_NULL, null]:
+		if stack.size() > 0:
+			return get_line(PoolStringArray(stack).join(","), local_resource)
 		else:
 			return null
 	elif key == DialogueConstants.ID_END_CONVERSATION:
@@ -186,26 +195,27 @@ func get_line(key: String, local_resource: DialogueResource) -> DialogueLine:
 	if data.get("type") == DialogueConstants.TYPE_CONDITION:
 		# "else" will have no actual condition
 		if data.get("condition") == null or check(data.get("condition")):
-			return get_line(data.get("next_id"), local_resource)
+			return get_line(data.get("next_id") + id_trail, local_resource)
 		else:
-			return get_line(data.get("next_conditional_id"), local_resource)
+			return get_line(data.get("next_conditional_id") + id_trail, local_resource)
 	
-	# Evaluate early exits
+	# Evaluate jumps
 	if data.get("type") == DialogueConstants.TYPE_GOTO:
 		if data.get("is_snippet"):
-			_goto_stack.append(data.get("next_id_after"))
-		return get_line(data.get("next_id"), local_resource)
+			id_trail = "," + data.get("next_id_after") + id_trail
+		return get_line(data.get("next_id") + id_trail, local_resource)
 	
 	# Set up a line object
 	var line = DialogueLine.new(data, auto_translate)
 	line.dialogue_manager = self
+	line.next_id += id_trail
 	
 	# Add as a child so that it gets cleaned up automatically
 	_trash.add_child(line)
 	
 	# If we are the first of a list of responses then get the other ones
 	if data.get("type") == DialogueConstants.TYPE_RESPONSE:
-		line.responses = get_responses(data.get("responses"), local_resource)
+		line.responses = get_responses(data.get("responses"), local_resource, id_trail)
 		return line
 	
 	# Replace any variables in the dialogue text
@@ -216,7 +226,7 @@ func get_line(key: String, local_resource: DialogueResource) -> DialogueLine:
 	# Inject the next node's responses if they have any
 	var next_line = local_resource.lines.get(line.next_id)
 	if next_line != null and next_line.get("type") == DialogueConstants.TYPE_RESPONSE:
-		line.responses = get_responses(next_line.get("responses"), local_resource)
+		line.responses = get_responses(next_line.get("responses"), local_resource, id_trail)
 	
 	return line
 
@@ -224,7 +234,6 @@ func get_line(key: String, local_resource: DialogueResource) -> DialogueLine:
 func set_is_dialogue_running(is_running: bool) -> void:
 	if is_dialogue_running != is_running:
 		if is_running:
-			_goto_stack = []
 			emit_signal("dialogue_started")
 		else:
 			emit_signal("dialogue_finished")
@@ -291,7 +300,10 @@ func mutate(mutation: Dictionary) -> void:
 	
 	# Or pass through to the resolver
 	else:
-		resolve(mutation.get("expression").duplicate(true))
+		var result = resolve(mutation.get("expression").duplicate(true))
+		if result is GDScriptFunctionState and result.is_valid():
+			yield(result, "completed")
+			return
 		
 	# Wait one frame to give the dialogue handler a chance to yield
 	yield(get_tree(), "idle_frame")
@@ -314,12 +326,13 @@ func get_with_replacements(text: String, replacements: Array) -> String:
 
 
 # Replace an array of line IDs with their response prompts
-func get_responses(ids: Array, local_resource: DialogueResource) -> Array:
+func get_responses(ids: Array, local_resource: DialogueResource, id_trail: String) -> Array:
 	var responses: Array = []
 	for id in ids:
 		var data = local_resource.lines.get(id)
 		if settings.get_runtime_value("include_all_responses", false) or data.get("condition") == null or check(data.get("condition")):
 			var response = DialogueResponse.new(data, auto_translate)
+			response.next_id += id_trail
 			response.character = get_with_replacements(response.character, response.character_replacements)
 			response.prompt = get_with_replacements(response.prompt, response.replacements)
 			response.is_allowed = data.get("condition") == null or check(data.get("condition"))
@@ -332,12 +345,17 @@ func get_responses(ids: Array, local_resource: DialogueResource) -> Array:
 
 # Get a value on the current scene or game state
 func get_state_value(property: String):
-	# It's a variable
+	var expression = Expression.new()
+	if expression.parse(property) != OK:
+		printerr("'%s' is not a valid expression: %s" % [property, expression.get_error_text()])
+		assert(false, "Invalid expression. See Output for details.")
+	
 	for state in get_game_states():
-		if has_property(state, property):
-			return state.get(property)
+		var result = expression.execute([], state, false)
+		if not expression.has_execute_failed():
+			return result
 
-	printerr("'" + property + "' is not a property on any game states (" + str(get_game_states()) + ").")
+	printerr("'%s' is not a property on any game states (%s)." % [property, str(get_game_states())])
 	assert(false, "Missing property on current scene or game state. See Output for details.")
 
 
@@ -348,7 +366,7 @@ func set_state_value(property: String, value) -> void:
 			state.set(property, value)
 			return
 	
-	printerr("'" + property + "' is not a property on any game states (" + str(get_game_states()) + ").")
+	printerr("'%s' is not a property on any game states (%s)." % [property, str(get_game_states())])
 	assert(false, "Missing property on current scene or game state. See Output for details.")
 
 
@@ -687,17 +705,6 @@ func compare(operator: String, first_value, second_value):
 
 
 func apply_operation(operator: String, first_value, second_value):
-	if first_value == null:
-		if typeof(second_value) == TYPE_BOOL and second_value == true:
-			return false
-		else:
-			return second_value
-	elif second_value == null:
-		if typeof(first_value) == TYPE_BOOL and first_value == true:
-			return false
-		else:
-			return first_value
-	
 	match operator:
 		"=":
 			return second_value

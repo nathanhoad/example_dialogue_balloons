@@ -108,6 +108,12 @@ func _gui_input(event):
 			create_title(current_goto_title)
 		"Control+Shift+Space":
 			choose_title_dialog.choose_a_title(get_titles())
+		"Control+K":
+			toggle_comment()
+		"Alt+Up":
+			move_line(-1)
+		"Alt+Down":
+			move_line(1)
 
 
 func get_cursor() -> Vector2:
@@ -118,6 +124,58 @@ func set_cursor(cursor: Vector2) -> void:
 	cursor_set_line(cursor.y, true)
 	cursor_set_column(cursor.x, true)
 
+
+func toggle_comment() -> void:
+	var cursor := get_cursor()
+	var from: int = cursor.y
+	var to: int = cursor.y
+	if is_selection_active():
+		from = get_selection_from_line()
+		to = get_selection_to_line()
+	
+	var lines := text.split("\n")
+	var will_comment := not lines[from].begins_with("#")
+	for i in range(from, to + 1):
+		lines[i] = "#" + lines[i] if will_comment else lines[i].substr(1)
+	
+	text = lines.join("\n")
+	select(from, 0, to, get_line_width(to))
+	set_cursor(cursor)
+
+
+func move_line(offset: int) -> void:
+	offset = clamp(offset, -1, 1)
+	
+	var cursor = get_cursor()
+	var reselect: bool = false
+	var from: int = cursor.y
+	var to: int = cursor.y
+	
+	if is_selection_active():
+		reselect = true
+		from = get_selection_from_line()
+		to = get_selection_to_line()
+	
+	var lines := text.split("\n")
+	
+	# We can't move the lines out of bounds
+	if from + offset < 0 or to + offset >= lines.size(): return
+	
+	var target_from_index = from - 1 if offset == -1 else to + 1
+	var target_to_index = to if offset == -1 else from
+	var line_to_move = lines[target_from_index]
+	lines.remove(target_from_index)
+	lines.insert(target_to_index, line_to_move)
+	
+	text = lines.join("\n")
+	
+	cursor.y += offset
+	from += offset
+	to += offset
+	if reselect:
+		select(from, 0, to, get_line_width(to))
+	set_cursor(cursor)
+	
 
 func insert_bbcode(open_tag: String, close_tag: String = "") -> void:
 	if close_tag == "":
@@ -168,15 +226,23 @@ func update_current_goto_title() -> void:
 	var line_number = cursor_get_line()
 	var current_line = get_line(line_number)
 	
+	var next_goto_title = ""
+	
 	# If we are on a goto line then make a note of the title and the line
 	# of the target title (if it exists)
 	if "=> " in current_line:
-		current_goto_title = current_line.substr(current_line.find("=> ") + 3).strip_edges()
+		next_goto_title = current_line.substr(current_line.find("=> ") + 3).strip_edges()
+	elif "=>< " in current_line:
+		next_goto_title = current_line.substr(current_line.find("=>< ") + 4).strip_edges()
+	
+	current_goto_title = next_goto_title
+	
+	if next_goto_title != "":
 		# Check if title exists
 		current_goto_line = -1
 		var lines = text.split("\n")
 		for i in range(0, lines.size()):
-			if lines[i].strip_edges() == "~ " + current_goto_title:
+			if lines[i].strip_edges() == "~ " + next_goto_title:
 				current_goto_line = i
 				break
 	
@@ -195,9 +261,9 @@ func _on_menu_about_to_show():
 	# Update our special menu items based on what the goto details are
 	var menu = get_menu()
 	if current_goto_title != "":
-		# END is a special title which ends the conversation. It never points
+		# END and END! are special titles which end the conversation. They never point
 		# to an actual title
-		if current_goto_title == "END":
+		if current_goto_title in ["END", "END!"]:
 			menu.set_item_text(CREATE_ITEM_INDEX, "Create node")
 			menu.set_item_disabled(CREATE_ITEM_INDEX, true)
 			menu.set_item_text(GOTO_ITEM_INDEX, "Jump to node")
@@ -235,7 +301,11 @@ func _on_menu_index_pressed(index):
 func _on_title_chosen(title):
 	var cursor_line = cursor_get_line()
 	var line: String = get_line(cursor_line)
-	line = line.substr(0, line.find("=> ") + 2)
+	
+	if "=> " in line:
+		line = line.substr(0, line.find("=> ") + 2)
+	elif "=>< " in line:
+		line = line.substr(0, line.find("=>< ") + 3)
 	
 	set_line(cursor_line, line + " " + title)
 	current_goto_title = title
