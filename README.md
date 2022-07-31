@@ -7,6 +7,7 @@ Examples include:
 - A pixel balloon for low res games (with talking beeps)
 - A balloon featuring character portraits
 - A point n click adventure style dialogue system (with voice)
+- Asking the player for their name and then using it.
 
 ## Explainer video
 

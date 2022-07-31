@@ -29,7 +29,7 @@ lines = {
 "type": "title"
 },
 "10": {
-"next_id": "11",
+"next_id": "end",
 "next_id_after": "11",
 "replacements": [  ],
 "text": "End the conversation",

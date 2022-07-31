@@ -1,0 +1,83 @@
+[gd_resource type="Resource" load_steps=2 format=2]
+
+[ext_resource path="res://addons/dialogue_manager/dialogue_resource.gd" type="Script" id=1]
+
+[resource]
+script = ExtResource( 1 )
+syntax_version = 2
+raw_text = "~ start
+
+Nathan: I am Nathan. what is your name?
+do ask_for_name()
+Nathan: Hi {{player_name}}! It is nice to meet you.
+Coco: Meow."
+errors = [  ]
+titles = {
+"start": "2"
+}
+lines = {
+"0": {
+"next_id": "2",
+"text": "start",
+"type": "title"
+},
+"2": {
+"character": "Nathan",
+"character_replacements": [  ],
+"inline_mutations": [  ],
+"next_id": "3",
+"pauses": {
+},
+"replacements": [  ],
+"speeds": [  ],
+"text": "I am Nathan. what is your name?",
+"time": null,
+"translation_key": "I am Nathan. what is your name?",
+"type": "dialogue"
+},
+"3": {
+"mutation": {
+"expression": [ {
+"function": "ask_for_name",
+"type": "function",
+"value": [  ]
+} ]
+},
+"next_id": "4",
+"type": "mutation"
+},
+"4": {
+"character": "Nathan",
+"character_replacements": [  ],
+"inline_mutations": [  ],
+"next_id": "5",
+"pauses": {
+},
+"replacements": [ {
+"expression": [ {
+"type": "variable",
+"value": "player_name"
+} ],
+"value_in_text": "{{player_name}}"
+} ],
+"speeds": [  ],
+"text": "Hi {{player_name}}! It is nice to meet you.",
+"time": null,
+"translation_key": "Hi {{player_name}}! It is nice to meet you.",
+"type": "dialogue"
+},
+"5": {
+"character": "Coco",
+"character_replacements": [  ],
+"inline_mutations": [  ],
+"next_id": "",
+"pauses": {
+},
+"replacements": [  ],
+"speeds": [  ],
+"text": "Meow.",
+"time": null,
+"translation_key": "Meow.",
+"type": "dialogue"
+}
+}
