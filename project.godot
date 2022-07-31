@@ -43,7 +43,7 @@ common/drop_mouse_on_gui_input_disabled=true
 
 [locale]
 
-translations=PoolStringArray( "res://I18n/dialogue.en.translation", "res://I18n/dialogue.de.translation" )
+translations=PoolStringArray( "res://l10n/dialogue.de.translation", "res://l10n/dialogue.en.translation" )
 locale_filter=[ 1, [ "de", "en" ] ]
 translation_remaps={
 "res://point_n_click_balloon/voice/en/t14bc171a9f.ogg": PoolStringArray( "res://point_n_click_balloon/voice/de/t14bc171a9f.ogg:de" ),

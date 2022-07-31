@@ -7,8 +7,15 @@ signal actioned(next_id)
 const DialogueLine = preload("res://addons/dialogue_manager/dialogue_line.gd")
 
 
+const DIALOGUE_PITCHES = {
+	Nathan = 0.8,
+	Coco = 1
+}
+
+
 export(NodePath) onready var response_template = get_node(response_template)
 
+onready var talk_sound := $TalkSound
 onready var balloon := $Balloon
 onready var margin := $Balloon/Margin
 onready var character_label := $Balloon/Margin/VBox/Character
@@ -18,6 +25,7 @@ onready var responses_menu := $Balloon/Margin/VBox/Responses
 
 var dialogue: DialogueLine
 var is_waiting_for_input: bool = false
+var letter_index: int = 0
 
 
 func _ready() -> void:
@@ -156,3 +164,13 @@ func _on_Balloon_gui_input(event):
 		next(dialogue.next_id)
 	elif event.is_action_pressed("ui_accept") and balloon.get_focus_owner() == balloon:
 		next(dialogue.next_id)
+
+
+func _on_Dialogue_spoke(letter, speed):
+	if not letter in [" ", "."]:
+		if letter_index == 0:
+			talk_sound.play()
+			var pitch = DIALOGUE_PITCHES.get(dialogue.character, 1)
+			talk_sound.pitch_scale = rand_range(pitch - 0.1, pitch + 0.1)
+		var actual_speed: int = 4 if speed >= 1 else 2
+		letter_index = (letter_index + 1) % actual_speed

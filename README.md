@@ -4,9 +4,9 @@ Here are some example balloons that you can use as a starting point when using t
 
 Examples include:
 
-- A pixel balloon for low res games
+- A pixel balloon for low res games (with talking beeps)
 - A balloon featuring character portraits
-- A point n click adventure style dialogue system
+- A point n click adventure style dialogue system (with voice)
 
 ## Explainer video
 
